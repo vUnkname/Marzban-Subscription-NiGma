@@ -1,4 +1,4 @@
-<div align="center"><img src="https://raw.githubusercontent.com/vUnkname/Marzban-Subscription-NiGma/main/NebulaTunnel.JPG" width="500"></div>
+<div align="center"><img src="https://raw.githubusercontent.com/vUnkname/Marzban-Subscription-NiGma/main/NiGma.png" width="500"></div>
 <div align="center"><br>
 
   برای توضیحات <a href="https://github.com/vUnkname/Marzban-Subscription-NiGma/blob/main/README-fa.md"> فارسی اینجا بزنید </a>
