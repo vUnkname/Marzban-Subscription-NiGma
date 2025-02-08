@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://raw.githack.com/vUnkname/Marzban-Subscription-NiGma/master/stylesheets/reset.css" />
+  <link rel="stylesheet" href="https://raw.githack.com/vUnkname/Marzban-Subscription-NiGma/master/stylesheets/styles.css" />
+  <link rel="stylesheet" href="https://raw.githack.com/vUnkname/Marzban-Subscription-NiGma/master/stylesheets/custom.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+  <title>{{ user.username }} - Subscription Info</title>
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#2c61a6" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#222222" />
+  <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.jsdelivr.net/gh/vUnkname/Marzban-Subscription-NiGma@master/images/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.jsdelivr.net/gh/vUnkname/Marzban-Subscription-NiGma@master/images/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://cdn.jsdelivr.net/gh/vUnkname/Marzban-Subscription-NiGma@master/images/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/vUnkname/Marzban-Subscription-NiGma@master/images/favicons/favicon.ico">
+  <link rel="manifest" href="https://cdn.jsdelivr.net/gh/vUnkname/Marzban-Subscription-NiGma@master/images/favicons/site.webmanifest">
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.12.1/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs-i18n@2.4.0/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-clipboard@2.2.0/dist/alpine-clipboard.js"></script>
+  <script>
+      const dataLimit = "{% if not user.data_limit %}∞{% else %}{{ user.data_limit }}{% endif %}";
+      const dataUsed = "{{ user.used_traffic }}";
+      let usedTraffic = parseFloat("{{ user.used_traffic }}"); 
+      let totalTrafficRaw = `{% if not user.data_limit %}∞{% else %}{{ user.data_limit }}{% endif %}`;
+      let totalTraffic = totalTrafficRaw === "∞" ? "∞" : parseFloat(totalTrafficRaw);
+      let remainingTrafficVar = "∞";
+      if (totalTraffic !== "∞") {
+          let remainingBytes = Math.max(0, totalTraffic - usedTraffic); 
+          let units = ["B", "KB", "MB", "GB", "TB"];
+          let unitIndex = 0;
+          while (remainingBytes >= 1024 && unitIndex < units.length - 1) {
+              remainingBytes /= 1024;
+              unitIndex++;
+          }
+          remainingTrafficVar = remainingBytes.toFixed(2) + " " + units[unitIndex];
+      }
+      const expireDateInit = "{% if user.status.value == 'on_hold' %}-{% elif not user.expire %}∞{% else %}{% set current_timestamp = now().timestamp() %}{{ user.expire | datetime }}{% endif %}";
+      var tmpUsage = ( ( parseFloat( dataUsed ) / parseFloat( dataLimit ) ) * 100 ).toFixed( 2 );
+      if ( tmpUsage > 100 ) tmpUsage = 100;
+      const percentageDataUsage = dataLimit == "∞" ? 100 : tmpUsage;
+      const dataChartColor = percentageDataUsage < 40 ? "orange" : percentageDataUsage < 80 ? "green" : "red";
+      const resetInterval = "{{ user.data_limit_reset_strategy.value }}";
+      let expireDateVar = expireDateInit.includes( "∞" ) ? "∞" : localStorage.getItem( "lang" ) == "fa" ? new Date( expireDateInit ).toLocaleString( "fa-IR-u-nu-latn" ).replace( ",", " " ) : (expireDateInit).replace(/-/g,'/');
+      let expireDate = expireDateInit.includes("∞") ? "∞" : new Date(expireDateInit).toISOString();
+      let diffInDays = expireDate === "∞" ? "∞" : Math.floor((Date.parse(expireDate) - Date.parse("{{ user.created_at }}")) / 86400000);
+      let tDataUsage = ("{{ user.used_traffic | bytesformat }}").match(/([\d.]+)\s*([a-zA-Z]+)/);
+      let langJson = {
+          en: {
+              active: "Active",
+              limited: "Limited",
+              expired: "Expired",
+              disabled: "Disabled",
+              onHold: "On hold",
+              dataUsage: "Data Usage: ",
+              expirationDate: "Expiration Date: ",
+              resetIntervalDay: "(Resets Every Day)",
+              resetIntervalWeek: "(Resets Every Week)",
+              resetIntervalMonth: "(Resets Every Month)",
+              resetIntervalYear: "(Resets Every Year)",
+              remainingDays: "Remaining Days: ",
+              remainingDaysSufix: " Days",
+              Days: "Days",
+              Day: "Day",
+              s: "s",
+              hour: "hour",
+              minute: "minute",
+              question: "Have a question? <a href='https://t.me/[[$adminID]]'>Contact support.</a>",
+              Left: "Left",
+              left: "left",
+              valume: "Valume",
+              usage: "Usage",
+              qr: "QrCode",
+              qrcode: "Qr Code",
+              share: "Shere",
+              details: "Details",
+              links: "Links",
+              apps: "Apps",
+              tutorials: "Tutorials",
+              subscription: "Subscription",
+              language: "Language",
+              settings: "Settings",
+              darkMode: "Dark mode",
+              copyAll: "Copy All",
+              proxy: "Proxy",
+              tutorial: "Tutorial",
+              download: "Download",
+              support: "Telegram Support",
+              import: "Import to app",
+              autoImport: "Auto Import",
+              usageTooltip: "You have consumed {percentage}%.",
+              valuemTooltip: "Your service has {used_traffic} of data remaining.",
+              DaysTooltip: "Your service has {remaining_days} days remaining.",
+              qrTooltip: "Sharing Subscription Address with QR Code",
+              supportTooltip: "Support, If you have any questions, share them with us."
+          },
+          fa: {
+              active: "فعال",
+              limited: "محدود",
+              expired: "منقضی شده",
+              disabled: "غیرفعال",
+              onHold: "معلق",
+              dataUsage: "مصرف داده: ",
+              expirationDate: "تاریخ انقضا: ",
+              resetIntervalDay: "(بازنشانی روزانه)",
+              resetIntervalWeek: "(بازنشانی هفتگی)",
+              resetIntervalMonth: "(بازنشانی ماهانه)",
+              resetIntervalYear: "(بازنشانی سالانه)",
+              remainingDays: "روزهای باقی‌مانده: ",
+              remainingDaysSufix: " روز",
+              Days: "روز",
+              Day: "روز",
+              s: " ",
+              hour: "ساعت",
+              minute: "دقیقه",
+              question: "سوال دارید ؟ <a href='https://t.me/[[$adminID]]'>با پشتیبانی درمیان بگذارید.</a>",
+              Left: "باقی‌مانده",
+              left: "باقی‌مانده",
+              valume: "حجم",
+              usage: "مصرف",
+              qr: "QrCode",
+              qrcode: "کد کیوآر",
+              share: "اشتراک‌گذاری",
+              details: "جزئیات",
+              links: "لینک‌ها",
+              apps: "برنامه‌ها",
+              tutorials: "آموزش‌ها",
+              subscription: "اشتراک",
+              language: "زبان",
+              settings: "تنظیمات",
+              darkMode: "حالت تاریک",
+              copyAll: "کپی همه",
+              proxy: "پراکسی",
+              tutorial: "آموزش",
+              download: "دانلود",
+              support: "پشتیبانی تلگرام",
+              import: "وارد کردن به برنامه",
+              autoImport: "وارد کردن خودکار",
+              usageTooltip: "شما {percentage}% از حجم خود را مصرف کرده‌اید.",
+              valuemTooltip: "سرویس شما {used_traffic} باقی‌مانده دارد.",
+              DaysTooltip: "سرویس شما {remaining_days} روز باقی‌مانده دارد.",
+              qrTooltip: "اشتراک‌گذاری آدرس سرویس‌خودتان با کیوآر کد",
+              supportTooltip: "اگر سوالی دارید؟ آن را با ما به اشتراک بگذارید."
+          }
+      };
+      let settings = {
+          darkMode: 1,
+          language: "en",
+      };
+
+      document.addEventListener( "alpine:init", () => {
+          settings.darkMode = localStorage.getItem( "dark" ) ?? settings.darkMode;
+          localStorage.setItem( "dark", settings.darkMode );
+      } );
+
+      document.addEventListener( "alpine-i18n:ready", () => {
+          window.AlpineI18n.fallbackLocale = "en";
+          let locale = localStorage.getItem( "lang" ) ?? settings.language;
+          window.AlpineI18n.create( locale, langJson );
+          AlpineI18n.locale = locale;
+          document.body.setAttribute( "dir", locale == "fa" ? "rtl" : "ltr" );
+          if ( locale == "fa" ) $( document.body ).addClass( "rtlFont" );
+          else $( document.body ).removeClass( "rtlFont" );
+      } );
+
+  </script>
+</head>
+
+<body :class="settings.darkMode == 1 ? 'dark' : ''" x-data>
+  <div class="first-one">
+  <section class="container">
+    <div class="main-content">
+      <article id="act_01">
+        <div class="main-content_header">
+          <h1>{{ user.username }}</h1>
+          <h3 id="service_status" x-data="{status: '{{ user.status.value }}'}" x-text="[status == 'active' ? $t('active') : status == 'limited' ? $t('limited') : status == 'expired' ? $t('expired') : status == 'on_hold' ? $t('onHold') : $t('disabled')]" :class="[status == 'active' ? 'green' : status == 'limited' ? 'orange' : status == 'expired' ? 'red' : '']"></h3>
+          <h4 class="sub_text" 
+              x-data="{ totalDays: 0 }" 
+              x-init="totalDays = diffInDays"
+              x-text="`${totalDays} ${$t('Days')}, ${'{% if not user.data_limit %}∞{% else %}{{ user.data_limit | bytesformat }}{% endif %}'}`">
+          </h4>
+          <i onclick="toggleLang()"></i>
+          <div id="menuButton"></div>
+          <div id="boxMenu" x-html="$t('question')"></div>
+        </div>
+        <div class="chart-wrapper" x-data="progressBar" x-init="Alpine.data( 'progressBar', () => progressBar )">
+          <div class="single-chart tooltip" :data-tooltip="$t('usageTooltip').replace('{percentage}', Math.floor(width))">
+            <svg viewBox="0 0 36 36" class="circular-chart red">
+              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"> </path>
+              <path class="circle" role="progressbar" :stroke-dasharray="`${Math.floor(width)}, 100`" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+              <text x="18" y="21" class="circular-chart-percentage">
+                <tspan font-size="12" x-text="Math.floor(width)"></tspan>
+                <tspan font-size="5" y="19.50" x="27">%</tspan>
+              </text>
+              <text x="18" y="27" class="circular-chart-usage" x-text="$t('usage')"></text>
+            </svg>
+          </div>
+
+          <section class="chart-details">
+            <aside>
+              <div class="boxes last-hours tooltip" id="date"
+                  :data-tooltip="$t('DaysTooltip').replace('{remaining_days}', remaining_days)"
+                  x-data="{ remaining_days: '{{ '∞' if user.expire is none else ((user.expire - now().timestamp()) // (24 * 3600)) | int }}', totalDays: 0 }"
+                  x-init="totalDays = diffInDays">
+                  <span>
+                    <span x-text="remaining_days"></span><small style="font-size: 18px;" x-text="totalDays"></small>
+                  </span>
+                  <label class="sub_text" x-text="`${$t('Days')} ${$t('Left')}`"></label>
+              </div>
+              <hr>
+                <div class="boxes tooltip half-dollar" x-data="{ remainingTraffic: '' }" x-init="remainingTraffic = remainingTrafficVar" :data-tooltip="$t('valuemTooltip').replace('{used_traffic}', remainingTraffic)" id="volume">
+                <span><i x-data="{ intDataUsage: 0 }" x-init="intDataUsage = tDataUsage[1]" x-text="intDataUsage"></i><small x-data="{ strDataUsage: '' }" x-init="strDataUsage = tDataUsage[2]" x-text="strDataUsage"></small><small>{% if not user.data_limit %}∞{% else %}{{ user.data_limit | bytesformat }}{% endif %}</small></span>
+                <label class="sub_text" x-text="`${$t('valume')} ${$t('Left')}`"></label>
+              </div>
+            </aside>
+          </section>
+          <section class="chart-details">
+            <aside>
+              <div class="boxes member tooltip" :data-tooltip="$t('supportTooltip')" id="support">
+                <label class="sub_text" x-text="$t('support')"></label>
+              </div>
+              <hr>
+              <div class="boxes tooltip openPopup" data-modal="share" :data-tooltip="$t('qrTooltip')" id="more">
+                <label class="sub_text" data-modal="share">
+                  <span x-text="$t('qr')"></span>
+                  <span x-text="$t('share')"></span>
+                </label>
+              </div>
+            </aside>
+          </section>
+          
+        </div>
+
+        <div class="date-calendar">
+          <div class="content-header">
+            <h3 id="service_date-status" x-data="{ expireDate: '' }" x-init="expireDate = expireDateVar" x-text="`${$t('expirationDate')} ${expireDate}`"></h3>
+            <h4 class="sub_text"
+                x-data="{
+                    remaining_days: parseInt('{{ (user.expire - now().timestamp()) // (24 * 3600) if user.expire else '∞' }}'),
+                    remaining_hours: parseInt('{{ ((user.expire - now().timestamp()) % (24 * 3600)) // 3600 if user.expire else 0 }}'),
+                    remaining_minutes: parseInt('{{ ((user.expire - now().timestamp()) % 3600) // 60 if user.expire else 0 }}')
+                }"
+                x-text="remaining_days !== '∞' 
+                    ? `${remaining_days} ${$t('Day')}${remaining_days > 1 ? $t('s') : ''} 
+                        ${remaining_hours > 0 ? remaining_hours + ' ' + $t('hour') + (remaining_hours > 1 ? $t('s') : '') : ''} 
+                        ${remaining_minutes > 0 ? remaining_minutes + ' ' + $t('minute') + (remaining_minutes > 1 ? $t('s') : '') : ''} 
+                        ${$t('left')}`
+                    : '∞'"
+            >
+            </h4>
+            <h4 class="sub_text" x-text="resetInterval == 'year' ? $t('resetIntervalYear') : resetInterval == 'month' ? $t('resetIntervalMonth') : resetInterval == 'week' ? $t('resetIntervalWeek') : resetInterval == 'day' ? $t('resetIntervalDay') : ''"></h4>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+  <section class="footer" title='NiGma-Services'>We are not First but We are the Best ❤️</section>
+
+  <div id="share" class="modal">
+    <div class="modal-content">
+      <div class="modal_header">
+        <span class="close">×</span>
+        <p class="title" x-text="`${$t('qrcode')} / ${$t('subscription')} ${$t('share')} ${$t('details')}`"></p>
+      </div>
+      <div class="modal_body">
+        <section>
+          <div class="body-header">
+            <label x-text="$t('subscription')"></label>
+          </div>
+          <div class="sub-body">
+            <aside>
+              <span>
+                <canvas id="qr"  onclick="copyToClipboard()"></canvas>
+              </span>
+            </aside>
+            <aside>
+              <input id="myInput" type="text" onclick="copyToClipboard()" x-data="{ subscriptionUrl: '' }"  x-init="subscriptionUrl = fullSubUrl" :value="subscriptionUrl" readonly >
+              <a type="button" class="tooltip" data-tooltip="Copy" onclick="copyToClipboard(this)"></a>
+            </aside>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+
+  </div>
+  <script>
+    const sub = "{{ user.subscription_url }}"
+    let fullSubUrl = `${window.location.origin}{{ user.subscription_url }}`;
+    if (sub.startsWith("http")) {
+      fullSubUrl = sub;
+    }
+
+    let progressBar = {
+        width: percentageDataUsage,
+        color: dataChartColor,
+    };
+
+    let qrSize = $( window ).width() > 500 ? ( $( window ).height() > 500 ? 400 : $( window ).height() - 200 ) : $( window ).height() > 500 ? $( window ).width() - 100 : $( window ).height() - 200;
+    $( window ).resize( function ()
+    {
+        qrSize = $( window ).width() > 500 ? ( $( window ).height() > 500 ? 400 : $( window ).height() - 200 ) : $( window ).height() > 500 ? $( window ).width() - 100 : $( window ).height() - 200;
+    });
+
+    let qr = new QRious({
+        element: document.getElementById("qr"),
+        value: fullSubUrl,
+        size: qrSize
+    });
+
+    let isMenuOpen = false;
+
+    menuButton.addEventListener('click', () => {
+      const svg1 = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2021%2021%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%20stroke%3D%22%239e1042%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m4.5%206.5h12%22%2F%3E%3Cpath%20d%3D%22m4.498%2010.5h11.997%22%2F%3E%3Cpath%20d%3D%22m4.5%2014.5h11.995%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E';
+      const svg2 = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2021%2021%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20transform%3D%22matrix%28-1%2C%200%2C%200%2C%201%2C%200%2C%200%29%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%20transform%3D%22translate%283%205%29%22%3E%3Cg%20stroke%3D%22%239e1042%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m4.5%201.5h8%22%2F%3E%3Cpath%20d%3D%22m4.5%205.498h5%22%2F%3E%3Cpath%20d%3D%22m4.5%209.5h8%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22m1.49884033%202.5c.5%200%201-.5%201-1s-.5-1-1-1-.99884033.5-.99884033%201%20.49884033%201%20.99884033%201zm0%204c.5%200%201-.5%201-1s-.5-1-1-1-.99884033.5-.99884033%201%20.49884033%201%20.99884033%201zm0%204c.5%200%201-.5%201-1s-.5-1-1-1-.99884033.5-.99884033%201%20.49884033%201%20.99884033%201z%22%20fill%3D%22%239e1042%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E';
+      isMenuOpen = !isMenuOpen;
+      document.getElementById('menuButton').style.backgroundImage = `url(${isMenuOpen ? svg2 : svg1})`;
+      document.getElementById('boxMenu').classList.toggle('visible', isMenuOpen);
+    });
+    
+    document.getElementById("support").addEventListener("click", function() {
+      window.open("https://t.me/[[$adminID]]", "_blank");
+    });
+
+    window.addEventListener( "alpine-i18n:locale-change", function ()
+    {
+        var locale = window.AlpineI18n.locale;
+        document.body.setAttribute( "dir", locale == "fa" ? "rtl" : "ltr" );
+        if ( locale == "fa" ) $( document.body ).addClass( "rtlFont" );
+        else $( document.body ).removeClass( "rtlFont" );
+    } );
+  
+    function toggleLang() {
+        let currentLang = localStorage.getItem("lang") || "en"; // مقدار پیش‌فرض "en"
+        let newLang = currentLang === "fa" ? "en" : "fa"; // تغییر بین "fa" و "en"
+
+        localStorage.setItem("lang", newLang);
+        window.AlpineI18n.locale = newLang;
+        document.body.setAttribute("dir", newLang === "fa" ? "rtl" : "ltr");
+
+        if (newLang === "fa") {
+            document.body.classList.add("rtlFont");
+        } else {
+            document.body.classList.remove("rtlFont");
+        }
+    }
+    function changeTheme ( ele )
+    {
+        settings.darkMode = ele.checked ? 1 : 0;
+        localStorage.setItem( "dark", settings.darkMode );
+        if ( !ele.checked ) $( document.body ).removeClass( "dark" );
+        else $( document.body ).addClass( "dark" );
+    }
+    function copyToClipboard(element) {
+        let inputElement = document.getElementById("myInput");
+
+        navigator.clipboard.writeText(inputElement.value).then(() => {
+            let oldTooltip = element.getAttribute("data-tooltip") || "Copy";
+            element.setAttribute("data-tooltip", "Copid!");
+            setTimeout(() => {
+                element.setAttribute("data-tooltip", oldTooltip);
+            }, 2000);
+        }).catch(err => {
+            console.error("Error: ", err);
+        });
+    }
+    
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/vUnkname/Marzban-Subscription-NiGma@master/javascripts/main.js"></script>
+</body>
+</body>
+
+</html>
