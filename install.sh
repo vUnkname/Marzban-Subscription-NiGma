@@ -1,6 +1,6 @@
 #!/bin/bash
 
-download_url="https://github.com/vUnkname/Marzban-Subscription-NiGma/blob/main/index.html"
+download_url="https://raw.githubusercontent.com/vUnkname/Marzban-Subscription-NiGma/main/index.html"
 template_dir="/var/lib/marzban/templates/subscription"
 template_file="$template_dir/index.html"
 env_file="/opt/marzban/.env"
