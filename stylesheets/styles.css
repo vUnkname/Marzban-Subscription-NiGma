@@ -135,12 +135,12 @@ article:not(:first-child){
   font-size: 30px;
 }
 .main-content_header > h3#service_status {
-  color: #ffffffbf;
+  color: #000000a6;
   font-size: 18px;
   display: inline-block;
   padding: 0 20px;
-  background-color: #ffffff0d;
-  border: 1px solid #ffffff26;
+  background-color: #f3f3f3;
+  border: 1px solid #d9d9d9;
   border-radius: 30px;
 }
 .main-content_header > h3#service_status.green {

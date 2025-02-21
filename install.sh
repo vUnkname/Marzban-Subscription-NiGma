@@ -21,7 +21,7 @@ install_template() {
 }
 
 update_admin_id() {
-    read -p "Your telegram support Id (AdminID): " admin_id
+    read -p "${BRIGHT_GREEN}[+]${RESET} Your telegram support Id (Admin ID): " admin_id
     echo "Updating Admin ID..."
     sleep 3
     sudo sed -i "s/\[\[\$adminID\]\]/$admin_id/g" "$template_file"
